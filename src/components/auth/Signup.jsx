@@ -22,7 +22,6 @@ import { useAuth } from "../../contexts/AuthContext";
 import { FaUser, FaEnvelope, FaLock, FaExclamationCircle, FaSpinner } from "react-icons/fa";
 
 const Signup = () => {
-  // Form state with proper initialization
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -37,18 +36,12 @@ const Signup = () => {
     color: "gray"
   });
   
-  // Hooks initialization
   const { signup } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Extract role from location state or default to user
   const role = location.state?.role || "user";
 
-  /**
-   * Effect hook to check for existing authentication
-   * Redirects authenticated users to appropriate dashboard
-   */
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
@@ -57,11 +50,6 @@ const Signup = () => {
     }
   }, [navigate]);
 
-  /**
-   * Handles form input changes and updates state
-   * 
-   * @param {Event} e - Input change event
-   */
   const handleChange = (e) => {
     const { name, value } = e.target;
     
@@ -70,19 +58,12 @@ const Signup = () => {
       [name]: value
     }));
     
-    // Check password strength when password field changes
     if (name === 'password') {
       evaluatePasswordStrength(value);
     }
   };
 
-  /**
-   * Evaluates password strength and updates UI feedback
-   * 
-   * @param {string} password - Password to evaluate
-   */
   const evaluatePasswordStrength = (password) => {
-    // Simple password strength evaluation
     let score = 0;
     let message = "";
     let color = "gray";
@@ -92,16 +73,13 @@ const Signup = () => {
       return;
     }
     
-    // Length check
     if (password.length >= 8) score += 1;
     if (password.length >= 12) score += 1;
     
-    // Complexity checks
     if (/[A-Z]/.test(password)) score += 1;
     if (/[0-9]/.test(password)) score += 1;
     if (/[^A-Za-z0-9]/.test(password)) score += 1;
     
-    // Determine message and color based on score
     if (score < 2) {
       message = "Weak";
       color = "red";
@@ -116,19 +94,11 @@ const Signup = () => {
     setPasswordStrength({ score, message, color });
   };
 
-  /**
-   * Handles form submission and user registration
-   * Implements localStorage-based user management
-   * 
-   * @param {Event} e - Form submission event
-   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Reset error
     setError("");
     
-    // Validate form inputs
     if (!formData.fullName.trim()) {
       setError("Full name is required");
       return;
@@ -139,20 +109,17 @@ const Signup = () => {
       return;
     }
     
-    // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
       setError("Please enter a valid email address");
       return;
     }
     
-    // Validate passwords match
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords do not match");
       return;
     }
     
-    // Validate password strength
     if (formData.password.length < 6) {
       setError("Password must be at least 6 characters");
       return;
@@ -161,72 +128,13 @@ const Signup = () => {
     setLoading(true);
     
     try {
-      // Simulate network latency for realistic UX
-      await new Promise(resolve => setTimeout(resolve, 800));
+      await signup(formData.fullName, formData.email, formData.password, role);
       
-      // Get existing users from localStorage or initialize with default users
-      const storedUsers = JSON.parse(localStorage.getItem('users') || JSON.stringify([
-        { email: 'admin@example.com', password: 'password123', role: 'admin', userId: 'admin-123' },
-        { email: 'user@example.com', password: 'password123', role: 'user', userId: 'user-456' }
-      ]));
-      
-      // Check if email already exists
-      if (storedUsers.some(user => user.email === formData.email)) {
-        setError("Email already in use");
-        setLoading(false);
-        return;
-      }
-      
-      // Create new user object
-      const newUser = {
-        email: formData.email,
-        password: formData.password,
-        role: role,
-        userId: `user-${Date.now()}`,
-        fullName: formData.fullName,
-        createdAt: new Date().toISOString()
-      };
-      
-      // Add to stored users
-      storedUsers.push(newUser);
-      localStorage.setItem('users', JSON.stringify(storedUsers));
-      
-      // Generate authentication token
-      const mockToken = `mock-token-${Date.now()}`;
-      
-      // Store authentication data for automatic login
-      localStorage.setItem("token", mockToken);
-      localStorage.setItem("userRole", newUser.role);
-      localStorage.setItem("userId", newUser.userId);
-      localStorage.setItem("email", newUser.email);
-      
-      // Create log entry for admin tracking
-      const logData = {
-        userId: newUser.userId,
-        username: newUser.email,
-        fullName: newUser.fullName,
-        role: newUser.role,
-        action: "register",
-        loginTime: new Date().toISOString(),
-        ipAddress: "127.0.0.1", // In production, this would be captured from the request
-        tokenName: mockToken.substring(0, 10) + "..." // Truncated for security
-      };
-      
-      // Store registration log
-      const existingLogs = JSON.parse(localStorage.getItem('userLogs') || '[]');
-      existingLogs.push(logData);
-      localStorage.setItem('userLogs', JSON.stringify(existingLogs));
-      
-      console.log("User registration:", logData);
-      
-      // Call the context signup method
-      signup(formData.email, formData.password);
-      
-      // Navigate to the appropriate dashboard
-      navigate(newUser.role === "admin" ? "/admin/dashboard" : "/user/dashboard");
+      const userRole = localStorage.getItem("userRole");
+      navigate(userRole === "admin" ? "/admin/dashboard" : "/user/dashboard");
     } catch (err) {
       console.error("Registration error:", err);
-      setError("Failed to create an account. Please try again.");
+      setError(err.message || "Failed to create an account. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -235,12 +143,10 @@ const Signup = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 p-6">
       <div className="bg-white shadow-lg rounded-xl p-8 w-full max-w-md transform transition duration-300 hover:scale-105">
-        {/* Header */}
         <h2 className="text-3xl font-bold text-center text-gray-800 mb-6">
           {role === "admin" ? "Admin Registration" : "User Registration"}
         </h2>
 
-        {/* Error display with animation */}
         {error && (
           <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded animate-pulse" role="alert">
             <div className="flex items-center">
@@ -250,9 +156,7 @@ const Signup = () => {
           </div>
         )}
 
-        {/* Registration form */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Full Name field */}
           <div>
             <label htmlFor="fullName" className="block text-gray-700 text-sm font-medium mb-1">Full Name</label>
             <div className="relative">
@@ -274,7 +178,6 @@ const Signup = () => {
             </div>
           </div>
 
-          {/* Email field */}
           <div>
             <label htmlFor="email" className="block text-gray-700 text-sm font-medium mb-1">Email</label>
             <div className="relative">
@@ -296,7 +199,6 @@ const Signup = () => {
             </div>
           </div>
 
-          {/* Password field */}
           <div>
             <label htmlFor="password" className="block text-gray-700 text-sm font-medium mb-1">Password</label>
             <div className="relative">
@@ -317,7 +219,6 @@ const Signup = () => {
               />
             </div>
             
-            {/* Password strength indicator */}
             {formData.password && (
               <div className="mt-1 flex items-center">
                 <div className="w-full bg-gray-200 rounded-full h-2 mr-2">
@@ -341,7 +242,6 @@ const Signup = () => {
             )}
           </div>
 
-          {/* Confirm Password field */}
           <div>
             <label htmlFor="confirmPassword" className="block text-gray-700 text-sm font-medium mb-1">Confirm Password</label>
             <div className="relative">
@@ -362,7 +262,6 @@ const Signup = () => {
               />
             </div>
             
-            {/* Password match indicator */}
             {formData.password && formData.confirmPassword && (
               <p className={`text-xs mt-1 ${
                 formData.password === formData.confirmPassword ? "text-green-500" : "text-red-500"
@@ -374,7 +273,6 @@ const Signup = () => {
             )}
           </div>
 
-          {/* Submit button with loading state */}
           <button
             type="submit"
             className={`w-full py-2 rounded-md shadow-md transition duration-200 text-white ${
@@ -396,7 +294,6 @@ const Signup = () => {
           </button>
         </form>
 
-        {/* Additional links */}
         <div className="text-center mt-4">
           <span className="text-gray-600 text-sm">Already have an account? </span>
           <Link

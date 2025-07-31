@@ -18,9 +18,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { FaTrash, FaSpinner, FaExclamationTriangle, FaUserShield, FaSort, FaFilter } from 'react-icons/fa';
+import { fetchUserLogs, deleteUserLog } from '../../api';
 
 const UserLogPage = () => {
-  // State management with proper initialization
   const [logs, setLogs] = useState([]);
   const [filteredLogs, setFilteredLogs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -35,65 +35,24 @@ const UserLogPage = () => {
   });
   const [deleteConfirm, setDeleteConfirm] = useState(null);
 
-  /**
-   * Load user logs from localStorage
-   */
   useEffect(() => {
     const loadLogs = async () => {
       try {
-        // Simulate network delay for realistic UX
-        await new Promise(resolve => setTimeout(resolve, 800));
+        setLoading(true);
+        const token = localStorage.getItem("token");
         
-        // Get logs from localStorage or initialize with mock data
-        const storedLogs = localStorage.getItem('userLogs');
+        if (!token) {
+          setError('Authentication required');
+          return;
+        }
+
+        const response = await fetchUserLogs(token);
         
-        if (storedLogs) {
-          const parsedLogs = JSON.parse(storedLogs);
-          setLogs(parsedLogs);
-          setFilteredLogs(parsedLogs);
+        if (response.error) {
+          setError(response.error);
         } else {
-          // Initialize with mock data if no logs exist
-          const mockLogs = [
-            {
-              id: '1',
-              userId: 'admin-123',
-              username: 'admin@example.com',
-              role: 'admin',
-              action: 'login',
-              loginTime: new Date(Date.now() - 3600000).toISOString(),
-              logoutTime: null,
-              ipAddress: '192.168.1.1',
-              tokenName: 'eyJhbGciOi...'
-            },
-            {
-              id: '2',
-              userId: 'user-456',
-              username: 'user@example.com',
-              role: 'user',
-              action: 'login',
-              loginTime: new Date(Date.now() - 7200000).toISOString(),
-              logoutTime: new Date(Date.now() - 3600000).toISOString(),
-              ipAddress: '192.168.1.2',
-              tokenName: 'eyJhbGciOi...'
-            },
-            {
-              id: '3',
-              userId: 'user-789',
-              username: 'test@example.com',
-              role: 'user',
-              action: 'login',
-              loginTime: new Date(Date.now() - 86400000).toISOString(),
-              logoutTime: new Date(Date.now() - 82800000).toISOString(),
-              ipAddress: '192.168.1.3',
-              tokenName: 'eyJhbGciOi...'
-            }
-          ];
-          
-          // Store mock logs in localStorage
-          localStorage.setItem('userLogs', JSON.stringify(mockLogs));
-          
-          setLogs(mockLogs);
-          setFilteredLogs(mockLogs);
+          setLogs(response);
+          setFilteredLogs(response);
         }
         
         setError(null);
@@ -108,11 +67,6 @@ const UserLogPage = () => {
     loadLogs();
   }, []);
 
-  /**
-   * Apply sorting to logs
-   * 
-   * @param {string} key - The property to sort by
-   */
   const handleSort = (key) => {
     let direction = 'asc';
     
@@ -138,20 +92,13 @@ const UserLogPage = () => {
     setFilteredLogs(sortedLogs);
   };
 
-  /**
-   * Apply filters to logs
-   * 
-   * @param {Object} newFilters - Updated filter settings
-   */
   const applyFilters = (newFilters) => {
     let result = [...logs];
     
-    // Apply role filter
     if (newFilters.role !== 'all') {
       result = result.filter(log => log.role === newFilters.role);
     }
     
-    // Apply search filter
     if (newFilters.search.trim()) {
       const searchTerm = newFilters.search.toLowerCase().trim();
       result = result.filter(log => 
@@ -161,7 +108,6 @@ const UserLogPage = () => {
       );
     }
     
-    // Apply current sort
     result.sort((a, b) => {
       if (a[sortConfig.key] === null) return 1;
       if (b[sortConfig.key] === null) return -1;
@@ -178,12 +124,6 @@ const UserLogPage = () => {
     setFilteredLogs(result);
   };
 
-  /**
-   * Handle filter changes
-   * 
-   * @param {string} filterType - Type of filter to change
-   * @param {string} value - New filter value
-   */
   const handleFilterChange = (filterType, value) => {
     const newFilters = {
       ...filters,
@@ -194,12 +134,6 @@ const UserLogPage = () => {
     applyFilters(newFilters);
   };
 
-  /**
-   * Format date for display
-   * 
-   * @param {string} dateString - ISO date string
-   * @returns {string} Formatted date string
-   */
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     
@@ -211,40 +145,40 @@ const UserLogPage = () => {
     }
   };
 
-  /**
-   * Delete a log entry
-   * 
-   * @param {string} logId - ID of the log to delete
-   */
-  const handleDelete = (logId) => {
-    // If not confirming, show confirmation first
+  const handleDelete = async (logId) => {
     if (deleteConfirm !== logId) {
       setDeleteConfirm(logId);
       return;
     }
     
-    // User confirmed deletion
-    const updatedLogs = logs.filter(log => log.id !== logId);
-    
-    // Update state
-    setLogs(updatedLogs);
-    setFilteredLogs(filteredLogs.filter(log => log.id !== logId));
-    
-    // Update localStorage
-    localStorage.setItem('userLogs', JSON.stringify(updatedLogs));
-    
-    // Reset confirmation state
-    setDeleteConfirm(null);
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setError('Authentication required');
+        return;
+      }
+
+      const response = await deleteUserLog(logId, token);
+      
+      if (response.error) {
+        setError(response.error);
+      } else {
+        const updatedLogs = logs.filter(log => log._id !== logId);
+        setLogs(updatedLogs);
+        setFilteredLogs(filteredLogs.filter(log => log._id !== logId));
+      }
+    } catch (err) {
+      console.error('Error deleting log:', err);
+      setError('Failed to delete log. Please try again.');
+    } finally {
+      setDeleteConfirm(null);
+    }
   };
 
-  /**
-   * Cancel delete confirmation
-   */
   const cancelDelete = () => {
     setDeleteConfirm(null);
   };
 
-  // Loading state
   if (loading) {
     return (
       <div className="p-6 flex justify-center items-center" aria-live="polite" role="status">
@@ -254,7 +188,6 @@ const UserLogPage = () => {
     );
   }
 
-  // Error state
   if (error) {
     return (
       <div className="p-6 text-red-500 flex items-center" aria-live="assertive" role="alert">
@@ -272,7 +205,6 @@ const UserLogPage = () => {
       </h2>
       
       <div className="mb-6 space-y-4 md:space-y-0 md:flex md:space-x-4">
-        {/* Search input */}
         <div className="md:flex-1">
           <label htmlFor="log-search" className="block text-sm font-medium text-gray-700 mb-1">
             Search Logs
@@ -288,7 +220,6 @@ const UserLogPage = () => {
           />
         </div>
         
-        {/* Role filter */}
         <div className="md:w-48">
           <label htmlFor="role-filter" className="block text-sm font-medium text-gray-700 mb-1">
             Filter by Role
@@ -307,12 +238,10 @@ const UserLogPage = () => {
         </div>
       </div>
       
-      {/* Results count */}
       <div className="mb-4 text-sm text-gray-500">
         Showing {filteredLogs.length} of {logs.length} logs
       </div>
       
-      {/* Log table */}
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
@@ -386,7 +315,7 @@ const UserLogPage = () => {
               </tr>
             ) : (
               filteredLogs.map((log) => (
-                <tr key={log.id} className="hover:bg-gray-50">
+                <tr key={log._id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">{log.username}</div>
                     <div className="text-xs text-gray-500">{log.userId}</div>
@@ -413,10 +342,10 @@ const UserLogPage = () => {
                     {log.ipAddress}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    {deleteConfirm === log.id ? (
+                    {deleteConfirm === log._id ? (
                       <div className="flex justify-end space-x-2">
                         <button
-                          onClick={() => handleDelete(log.id)}
+                          onClick={() => handleDelete(log._id)}
                           className="text-red-600 hover:text-red-900"
                           aria-label={`Confirm delete log for ${log.username}`}
                         >
@@ -432,7 +361,7 @@ const UserLogPage = () => {
                       </div>
                     ) : (
                       <button
-                        onClick={() => handleDelete(log.id)}
+                        onClick={() => handleDelete(log._id)}
                         className="text-red-600 hover:text-red-900"
                         aria-label={`Delete log for ${log.username}`}
                       >

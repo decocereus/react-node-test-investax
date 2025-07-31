@@ -6,15 +6,16 @@ const User = require("./models/User");
 const bodyParser = require("body-parser");
 const authRoutes = require('./routes/authRoutes');
 const forgotPassRoutes = require("./routes/forgetPasswordRoute");
+const userLogRoutes = require("./routes/userLogRoutes");
 const app = express();
 app.use(express.json());
 app.use(cors());
 app.use(bodyParser.json());
 
-// Routes
 app.use('/api/auth', authRoutes);
 app.use("/api", forgotPassRoutes);
-const PORT = process.env.PORT || 5000;
+app.use("/api/logs", userLogRoutes);
+const PORT = process.env.PORT || 5001;
 
 const mongoURI = process.env.MONGO_URI;
 if (!mongoURI) {
@@ -64,7 +65,7 @@ app.delete("/admin/users/:email", async (req, res) => {
     const user = await User.findOneAndUpdate(
       { email },
       { fullName, role },
-      { new: true } // Ensure it returns updated data
+      { new: true }
     );
   
     if (!user) return res.status(404).json({ message: "User not found" });

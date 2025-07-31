@@ -86,6 +86,29 @@ const ProtectedRoute = ({ children, requiredRole }) => {
 };
 
 /**
+ * Public Route Component
+ * 
+ * Higher-order component that redirects authenticated users to their respective dashboards.
+ * 
+ * @param {Object} props - Component props
+ * @param {React.ReactNode} props.children - Child components to render when unauthenticated
+ */
+const PublicRoute = ({ children }) => {
+  const { user } = useAuth();
+  const isAuthenticated = !!user || !!localStorage.getItem("token");
+  
+  // If authenticated, redirect to appropriate dashboard
+  if (isAuthenticated) {
+    const userRole = localStorage.getItem("userRole");
+    const redirectPath = userRole === "admin" ? "/admin/dashboard" : "/user/dashboard";
+    return <Navigate to={redirectPath} replace />;
+  }
+  
+  // User is unauthenticated, render children
+  return children;
+};
+
+/**
  * Main App Component
  * 
  * Defines the application's routing structure and wraps the app with necessary providers.
@@ -101,11 +124,11 @@ function App() {
             <main className="flex-grow">
               <Routes>
                 {/* Public Routes */}
-                <Route path="/" element={<Landing />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/signup" element={<Signup />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/" element={<PublicRoute><Landing /></PublicRoute>} />
+                <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+                <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
+                <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
+                <Route path="/reset-password" element={<PublicRoute><ResetPassword /></PublicRoute>} />
                 
                 {/* Protected Admin Routes */}
                 <Route 
