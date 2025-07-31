@@ -5,7 +5,7 @@ const UserLogSchema = new mongoose.Schema({
     username: { type: String, required: true },
     role: { type: String, enum: ["user", "admin"], required: true },
     action: { type: String, enum: ["login", "logout"], required: true },
-    loginTime: { type: Date, required: true },
+    loginTime: { type: Date, required: false },
     logoutTime: { type: Date, default: null },
     ipAddress: { type: String, required: true },
     tokenName: { type: String, required: true },

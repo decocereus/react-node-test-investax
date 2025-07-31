@@ -113,6 +113,8 @@ const PublicRoute = ({ children }) => {
  * 
  * Defines the application's routing structure and wraps the app with necessary providers.
  */
+import Notification from "./components/common/Notification";
+
 function App() {
   return (
     <AuthProvider>
@@ -120,6 +122,7 @@ function App() {
         <Router>
           <div className="flex flex-col min-h-screen">
             <Navbar />
+            <Notification />
             
             <main className="flex-grow">
               <Routes>

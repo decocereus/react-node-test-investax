@@ -62,8 +62,8 @@ const AuthProvider = ({ children }) => {
     try {
       const response = await apiLogin({ email, password, role });
       
-      if (response.error) {
-        throw new Error(response.message || response.error);
+      if (!response.token) {
+        throw new Error(response.message || 'Login failed');
       }
       
       localStorage.setItem("token", response.token);

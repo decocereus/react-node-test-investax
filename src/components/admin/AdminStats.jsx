@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { API_URL } from "../../api";
 
 const AdminStats = () => {
   const [totalUsers, setTotalUsers] = useState(0);
@@ -8,7 +9,7 @@ const AdminStats = () => {
 
   // Fetch Users from API
   useEffect(() => {
-    fetch("https://zidio-task-management-backend.onrender.com/admin/users") // API URL
+    fetch(`${API_URL}/admin/users`) // API URL
       .then((res) => res.json())
       .then((data) => {
         setTotalUsers(data.length); // Count total users

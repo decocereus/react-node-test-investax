@@ -143,4 +143,46 @@ router.post("/logout", async (req, res) => {
     }
 });
 
+router.get("/users", async (req, res) => {
+    try {
+        const users = await User.find();
+        res.json(users);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server error", error });
+    }
+});
+
+router.delete("/users/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+        await User.findByIdAndDelete(id);
+        res.json({ message: "User deleted successfully" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server error", error });
+    }
+});
+
+router.get("/profile", async (req, res) => {
+    try {
+        const token = req.headers.authorization?.replace('Bearer ', '');
+        if (!token) {
+            return res.status(401).json({ message: "No token provided" });
+        }
+
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const user = await User.findById(decoded.userId);
+        
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        res.json(user);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server error", error });
+    }
+});
+
 module.exports = router;

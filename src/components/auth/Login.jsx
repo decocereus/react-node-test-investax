@@ -19,6 +19,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
+import { useNotifications } from "../../contexts/NotificationContext";
 import { FaLock, FaEnvelope, FaExclamationCircle, FaSpinner } from "react-icons/fa";
 
 const Login = () => {
@@ -28,6 +29,7 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   
   const { login } = useAuth();
+  const { addNotification } = useNotifications();
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -37,6 +39,7 @@ const Login = () => {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
+        addNotification("Logged in successfully!", "success");
       const userRole = localStorage.getItem("userRole");
       navigate(userRole === "admin" ? "/admin/dashboard" : "/user/dashboard");
     }

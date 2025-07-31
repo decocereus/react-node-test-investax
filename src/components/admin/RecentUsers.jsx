@@ -1,12 +1,13 @@
 import React from "react";
 import { useState } from "react";
 import { useEffect } from "react";
+import { API_URL } from "../../api";
 const RecentUsers = () => {
 
   const [users, setUsers] = useState([]);
 
   useEffect(() => {
-    fetch("https://zidio-task-management-backend.onrender.com/admin/users") // API URL
+    fetch(`${API_URL}/admin/users`) // API URL
       .then((res) => res.json())
       .then((data) => {
         const sortedUsers = data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));

@@ -17,6 +17,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { FaCheck, FaEdit, FaSpinner, FaExclamationTriangle, FaCalendarAlt, FaFlag } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 
 const TaskList = () => {
   // State management with proper initialization
@@ -26,7 +27,10 @@ const TaskList = () => {
   const [error, setError] = useState(null);
   const [editingTask, setEditingTask] = useState(null);
   const [editForm, setEditForm] = useState({ title: '', description: '' });
-
+  const navigate = useNavigate();
+  const goToCreateTaskPage = () => {
+    navigate('/user/userpage'); // no page reload
+  };
   /**
    * Load tasks from localStorage or initialize with mock data
    * Uses localStorage for cross-component data sharing
@@ -295,10 +299,7 @@ const TaskList = () => {
         <p>No tasks found. Create a new task to get started.</p>
         <button 
           className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-          onClick={() => {
-            // In a real app, this would open a task creation modal or redirect
-            console.log('Create task clicked');
-          }}
+          onClick={goToCreateTaskPage}
         >
           Create Task
         </button>

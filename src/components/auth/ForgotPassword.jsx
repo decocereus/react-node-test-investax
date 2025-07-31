@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { API_URL } from "../../api";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
@@ -19,7 +20,7 @@ const ForgotPassword = () => {
     setLoading(true);
 
     try {
-      const res = await fetch("https://zidio-task-management-backend.onrender.com/api/forgot-password", {
+      const res = await fetch(`${API_URL}/api/forgot-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, role }), // Include role in the request

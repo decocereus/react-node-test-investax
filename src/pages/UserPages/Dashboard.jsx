@@ -8,7 +8,7 @@ import "react-toastify/dist/ReactToastify.css";
 import UserSidebar from "./UserSidebar";
 import Column from "./Column";
 import SortableItem from "./SortableItem";
-import notificationSound from "./notification.mp3";
+import notificationSound from "../../assets/notification.mp3";
 
 const UserDashboard = () => {
   const [tasks, setTasks] = useState({

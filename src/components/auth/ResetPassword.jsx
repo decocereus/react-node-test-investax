@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { API_URL } from "../../api";
 
 const ResetPassword = () => {
   const [password, setPassword] = useState("");
@@ -29,7 +30,7 @@ const ResetPassword = () => {
 
     setLoading(true);
     try {
-      const res = await fetch("https://zidio-task-management-backend.onrender.com/api/reset-password", {
+      const res = await fetch(`${API_URL}/api/reset-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token, password }),

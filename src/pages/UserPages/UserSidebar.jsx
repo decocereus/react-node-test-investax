@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { FaChartBar, FaTasks, FaCalendarAlt, FaBell, FaUser } from "react-icons/fa";
+import { FaChartBar, FaTasks, FaCalendarAlt, FaBell, FaUser, FaFilter } from "react-icons/fa";
 
 const UserSidebar = () => {
   const location = useLocation();
@@ -9,6 +9,7 @@ const UserSidebar = () => {
   const menuItems = [
     { path: "/user/dashboard", label: "Dashboard", icon: <FaChartBar /> },
     { path: "/user/userpage", label: "Create Tasks", icon: <FaTasks /> },
+    { path: "/user/task-filter", label: "Task Filter", icon: <FaFilter /> },
     { path: "/user/calendar", label: "Calendar", icon: <FaCalendarAlt /> },
     { path: "/user/notifications", label: "Notifications", icon: <FaBell /> },
     { path: "/user/profile", label: "Profile", icon: <FaUser /> },
